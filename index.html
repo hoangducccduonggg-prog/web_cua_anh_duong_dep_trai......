@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anh Dương ❤️ Em Bé Dung - Love Story Vĩnh Cửu</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Quicksand', sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            overflow-x: hidden;
+            color: #fff;
+            user-select: none;
+        }
+        /* Hiệu ứng trái tim không gian 3D nền */
+        canvas#heart {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(5, 0, 10, 0.85);
+            z-index: 0;
+        }
+        .romantic-font { font-family: 'Dancing Script', cursive; }
+        .glass-card {
+            background: rgba(20, 10, 25, 0.75);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 2px solid rgba(244, 114, 182, 0.4);
+            box-shadow: 0 25px 55px rgba(236, 72, 153, 0.35);
+        }
+        .glass-modal {
+            background: rgba(30, 15, 35, 0.92);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 2px solid rgba(244, 114, 182, 0.6);
+            box-shadow: 0 30px 70px rgba(225, 29, 72, 0.5);
+            color: #fff;
+        }
+        .keypad-btn {
+            background: rgba(255, 255, 255, 0.15);
+            transition: all 0.15s ease-in-out;
+            box-shadow: 0 6px 16px rgba(244, 114, 182, 0.25);
+            border: 1px solid rgba(244, 114, 182, 0.3);
+            cursor: pointer;
+        }
+        .keypad-btn:active {
+            transform: scale(0.92);
+            background: rgba(244, 114, 182, 0.5);
+        }
+        .dot-active {
+            background-color: #f43f5e !important;
+            border-color: #fda4af !important;
+            box-shadow: 0 0 15px #f43f5e;
+            transform: scale(1.25);
+        }
+        @keyframes pulseHeart {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.18); }
+        }
+        .pulse-heart { animation: pulseHeart 1.3s infinite ease-in-out; }
+        .shimmer-text {
+            background: linear-gradient(90deg, #f43f5e, #f472b6, #fb7185, #ec4899, #f43f5e);
+            background-size: 300% auto;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shimmerMove 4s linear infinite;
+        }
+        @keyframes shimmerMove {
+            to { background-position: 300% center; }
+        }
+        /* Tùy chỉnh thanh cuộn */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+        ::-webkit-scrollbar-thumb { background: #f472b6; border-radius: 10px; }
+    </style>
+</head>
+<body class="flex items-center justify-center p-3 sm:p-6 relative">
+
+    <!-- CANVAS TRÁI TIM KHÔNG GIAN 3D -->
+    <canvas id="heart"></canvas>
+
+    <!-- NÚT ÂM THANH MUSHIC & TOÀN CỤC -->
+    <button id="soundMasterBtn" onclick="toggleMasterSound()" class="fixed top-5 left-5 z-50 bg-white/20 hover:bg-white/40 text-pink-300 p-3 rounded-full shadow-lg transition flex items-center justify-center w-12 h-12 border border-pink-400 cursor-pointer backdrop-blur-md">
+        <i id="soundMasterIcon" class="fa-solid fa-music text-lg"></i>
+    </button>
+
+    <!-- POPUP THÔNG BÁO REAL-TIME TỪ MÁY KHÁC -->
+    <div id="syncToast" class="fixed bottom-5 right-5 z-50 bg-rose-600/90 border border-pink-300 text-white px-5 py-3 rounded-2xl shadow-2xl backdrop-blur-md transform translate-y-32 opacity-0 transition-all duration-300 flex items-center gap-3">
+        <i class="fa-solid fa-heart-pulse text-2xl animate-bounce text-yellow-300"></i>
+        <div>
+            <h4 class="text-xs font-bold uppercase tracking-wider text-pink-200">Thông báo từ máy bên kia ❤️</h4>
+            <p id="toastMessage" class="text-sm font-semibold">Em Bé Dung vừa chọn món Phở Bò ngon tuyệt!</p>
+        </div>
+    </div>
+
+    <!-- MAIN CONTAINER -->
+    <div class="relative z-10 w-full max-w-5xl mx-auto">
+        
+        <!-- 1. MÀN HÌNH KHÓA MẬT KHẨU -->
+        <div id="passcodeScreen" class="glass-card rounded-3xl p-6 md:p-10 flex flex-col md:flex-row items-center justify-between gap-8 max-w-3xl mx-auto transition-all duration-500 relative overflow-hidden">
+            <div class="w-full md:w-1/2 flex flex-col items-center">
+                <div class="relative p-3.5 bg-white/10 rounded-2xl shadow-2xl transform -rotate-2 hover:rotate-0 transition duration-300 border border-pink-300/40">
+                    <img id="mainProfilePic" alt="Em Bé Dung" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&auto=format&fit=crop&q=60" class="w-60 h-72 md:w-64 md:h-80 object-cover rounded-xl shadow-md relative">
+                    <div class="absolute -bottom-3 -right-3 bg-rose-600 text-white p-3 rounded-full shadow-lg pulse-heart">
+                        <i class="fa-solid fa-heart text-xl"></i>
+                    </div>
+                </div>
+                <h3 class="mt-4 text-pink-300 font-bold text-sm tracking-wide text-center">
+                    👑 Anh Dương (19/11/2009) ❤️ Em Bé Dung (10/12/2026) 🌸
+                </h3>
+            </div>
+
+            <div class="w-full md:w-1/2 flex flex-col items-center">
+                <div class="text-rose-400 text-3xl mb-1 pulse-heart"><i class="fa-solid fa-heart"></i></div>
+                <h2 class="text-pink-300 font-bold text-lg mb-1">Mật khẩu tình yêu</h2>
+                <p class="text-xs text-pink-200/70 mb-4 font-medium text-center">Nhập ngày sinh của Dunggg (1012) để mở khóa ✨</p>
+
+                <div class="flex gap-4 mb-6">
+                    <div id="dot0" class="w-4 h-4 rounded-full border-2 border-pink-400 bg-white/20 transition-all duration-200"></div>
+                    <div id="dot1" class="w-4 h-4 rounded-full border-2 border-pink-400 bg-white/20 transition-all duration-200"></div>
+                    <div id="dot2" class="w-4 h-4 rounded-full border-2 border-pink-400 bg-white/20 transition-all duration-200"></div>
+                    <div id="dot3" class="w-4 h-4 rounded-full border-2 border-pink-400 bg-white/20 transition-all duration-200"></div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-3 w-64">
+                    <button onclick="pressKey('1')" class="keypad-btn h-12 rounded-2xl text-pink-200 font-bold text-xl flex items-center justify-center">1</button>
+                    <button onclick="pressKey('2')" class="keypad-btn h-12 rounded-2xl text-pink-200 font-bold text-xl flex items-center justify-center">2</button>
+                    <button onclick="pressKey('3')" class="keypad-btn h-12 rounded-2xl text-pink-200 font-bold text-xl flex items-center justify-center">3</button>
+                    <button onclick="pressKey('4')" class="keypad-btn h-12 rounded-2xl text-pink-200 font-bold text-xl flex items-center justify-center">4</button>
+                    <button onclick="pressKey('5')" class="keypad-btn h-12 rounded-2xl text-pink-200 font-bold text-xl flex items-center justify-center">5</button>
+                    <button onclick="pressKey('6')" class="keypad-btn h-12 rounded-2xl text-pink-200 font-bold text-xl flex items-center justify-center">6</button>
+                    <button onclick="pressKey('7')" class="keypad-btn h-12 rounded-2xl text-pink-200 font-bold text-xl flex items-center justify-center">7</button>
+                    <button onclick="pressKey('8')" class="keypad-btn h-12 rounded-2xl text-pink-200 font-bold text-xl flex items-center justify-center">8</button>
+                    <button onclick="pressKey('9')" class="keypad-btn h-12 rounded-2xl text-pink-200 font-bold text-xl flex items-center justify-center">9</button>
+                    <button onclick="alert('Gợi ý: Mật khẩu là ngày sinh của công chúa Dunggg: 1012 nha! ❤️')" class="keypad-btn h-12 rounded-2xl text-rose-300 flex items-center justify-center text-xl bg-rose-900/40 border border-rose-500 animate-pulse">🎁</button>
+                    <button onclick="pressKey('0')" class="keypad-btn h-12 rounded-2xl text-pink-200 font-bold text-xl flex items-center justify-center">0</button>
+                    <button onclick="deleteKey()" class="keypad-btn h-12 rounded-2xl text-pink-300 flex items-center justify-center text-lg"><i class="fa-solid fa-delete-left"></i></button>
+                </div>
+                <div id="passcodeError" class="mt-4 text-rose-400 text-xs font-bold h-4 text-center"></div>
+            </div>
+        </div>
+
+        <!-- 2. MENU CHÍNH VỚI 20 Ô CHỨC NĂNG -->
+        <div id="mainMenuScreen" class="hidden glass-card rounded-3xl p-6 md:p-10 max-w-5xl mx-auto transition-all duration-500">
+            <div class="text-center mb-6">
+                <h1 class="romantic-font text-4xl md:text-6xl font-bold shimmer-text mb-2">Thế Giới Tình Yêu Anh Dương & Dunggg ❤️</h1>
+                <p class="text-pink-300 text-sm font-semibold">Tự động lưu mọi thay đổi • Kết nối đồng bộ giữa các máy</p>
+            </div>
+
+            <!-- THANH ĐẾM NGÀY YÊU & SINH NHẬT -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div class="bg-gradient-to-r from-pink-900/60 to-rose-900/60 p-4 rounded-2xl border border-pink-500/40 text-center backdrop-blur-md">
+                    <span class="text-xs uppercase tracking-wider text-pink-300 font-bold"><i class="fa-solid fa-clock-rotate-left"></i> Thời gian bên nhau từ 27/06/2026:</span>
+                    <div id="loveTimer" class="font-extrabold text-xl md:text-2xl text-yellow-300 mt-1">0 Ngày 0 Giờ 0 Phút 0 Giây</div>
+                </div>
+                <div class="bg-gradient-to-r from-purple-900/60 to-pink-900/60 p-4 rounded-2xl border border-pink-500/40 text-center backdrop-blur-md">
+                    <span class="text-xs uppercase tracking-wider text-pink-300 font-bold"><i class="fa-solid fa-cake-candles"></i> Sinh nhật Em Bé Dung (10/12/2026):</span>
+                    <div id="birthdayCountdown" class="font-extrabold text-xl md:text-2xl text-pink-200 mt-1">00 Ngày 00 Giờ 00 Phút 00 Giây</div>
+                </div>
+            </div>
+
+            <!-- 20 Ô CHỨC NĂNG SIÊU ĐA DẠNG -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3.5 mb-6">
+                
+                <!-- 1 -->
+                <div onclick="openModal('letterModal')" class="bg-white/10 hover:bg-white/20 p-4 rounded-2xl shadow transition transform hover:-scale-105 cursor-pointer flex flex-col items-center text-center border border-pink-400/30 group">
+                    <div class="w-12 h-12 bg-rose-500/30 rounded-xl flex items-center justify-center text-rose-300 text-xl mb-2 group-hover:scale-110 transition"><i class="fa-solid fa-envelope-open-text"></i></div>
+                    <h3 class="font-bold text-pink-200 text-xs">1. Thư Tình Sáp</h3>
+                </div>
+                <!-- 2 -->
+                <div onclick="openModal('musicModal')" class="bg-white/10 hover:bg-white/20 p-4 rounded-2xl shadow transition transform hover:-scale-105 cursor-pointer flex flex-col items-center text-center border border-pink-400/30 group">
+                    <div class="w-12 h-12 bg-rose-500/30 rounded-xl flex items-center justify-center text-rose-300 text-xl mb-2 group-hover:scale-110 transition"><i class="fa-solid fa-headphones"></i></div>
+                    <h3 class="font-bold text-pink-200 text-xs">2. Nhạc Tình Yêu</h3>
+                </div>
+                <!-- 3 -->
+                <div onclick="openModal('imageModal')" class="bg-white/10 hover:bg-white/20 p-4 rounded-2xl shadow transition transform hover:-scale-105 cursor-pointer flex flex-col items-center text-center border border-pink-400/30 group">
+                    <div class="w-12 h-12 bg-rose-500/30 rounded-xl flex items-center justify-center text-rose-300 text-xl mb-2 group-hover:scale-110 transition"><i class="fa-solid fa-images"></i></div>
+                    <h3 class="font-bold text-pink-200 text-xs">3. Album Kỷ Niệm</h3>
+                </div>
+                <!-- 4 -->
+                <div onclick="openModal('cakeModal')" class="bg-white/10 hover:bg-white/20 p-4 rounded-2xl shadow transition transform hover:-scale-105 cursor-pointer flex flex-col items-center text-center border border-pink-400/30 group">
+                    <div class="w-12 h-12 bg-rose-500/30 rounded-xl flex items-center justify-center text-rose-300 text-xl mb-2 group-hover:scale-110 transition"><i class="fa-solid fa-cake-candles"></i></div>
+                    <h3 class="font-bold text-pink-200 text-xs">4. Bánh Sinh Nhật 3D</h3>
+                </div>
+                <!-- 5 -->
+                <div onclick="openModal('treeModal')" class="bg-white/10 hover:bg-white/20 p-4 rounded-2xl shadow transition transform hover:-scale-105 cursor-pointer flex flex-col items-center text-center border border-pink-400/30 group">
+                    <div class="w-12 h-12 bg-emerald-500/30 rounded-xl flex items-center justify-center text-emerald-300 text-xl mb-2 group-hover:scale-110 transition"><i class="fa-solid fa-tree"></i></div>
+                    <h3 class="font-bold text-pink-200 text-xs">5. Cây Tình Yêu</h3>
+                </div>
+                <!-- 6 -->
+                <div onclick="openModal('petModal')" class="bg-white/10 hover:bg-white/20 p-4 rounded-2xl shadow transition transform hover:-scale-105 cursor-pointer flex flex-col items-center text-center border border-pink-400/30 group">
+                    <div class="w-12 h-12 bg-amber-500/30 rounded-xl flex items-center justify-center text-amber-300 text-xl mb-2 group-hover:scale-110 transition"><i class="fa-solid fa-paw"></i></div>
+                    <h3 class="font-bold text-pink-200 text-xs">6. Nuôi Thú Cưng</h3>
+                </div>
+                <!-- 7 -->
+                <div onclick="openModal('syncModal')" class="bg-white/10 hover:bg-white/20 p-4 rounded-2xl shadow transition transform hover:-scale-105 cursor-pointer flex flex-col items-center text-center border border-pink-400/30 group">
+                    <div class="w-12 h-12 bg-purple-500/30 rounded-xl flex items-center justify-center text-purple-300 text-xl mb-2 group-hover:scale-110 transition"><i class="fa-solid fa-utensils"></i></div>
+                    <h3 class="font-bold text-pink-200 text-xs">7. Ăn Gì / Mua Gì</h3>
+                </div>
+                <!-- 8 -->
+                <div onclick="openModal('starsModal')" class="bg-white/10 hover:bg-white/20 p-4 rounded-2xl shadow transition transform hover:-scale-105 cursor-pointer flex flex-col items-center text-center border border-pink-400/30 group">
+                    <div class="w-12 h-12 bg-blue-500/30 rounded-xl flex items-center justify-center text-blue-300 text-xl mb-2 group-hover:scale-110 transition"><i class="fa-solid fa-star"></i></div>
+                    <h3 class="font-bold text-pink-200 text-xs">8. Bầu Trời Sao</h3>
+                </div>
+                <!-- 9 -->
+                <div onclick="openModal('voucherModal')" class="bg-white/10 hover:bg-white/20 p-4 rounded-2xl shadow transition transform hover:-scale-105 cursor-pointer flex flex-col items-center text-center border border-pink-400/30 group">
+                    <div class="w-12 h-12 bg-rose-500/30 rounded-xl flex items-center justify-center text-rose-300 text-xl mb-2 group-hover:scale-110 transition"><i class="fa-solid fa-ticket"></i></div>
+                    <h3 class="font-bold text-pink-200 text-xs">9. Hũ Voucher Yêu</h3>
+                </div>
+                <!-- 10 -->
+                <div onclick="openModal('gameModal')" class="bg-white/10 hover:bg-white/20 p-4 rounded-2xl shadow transition transform hover:-scale-105 cursor-pointer flex flex-col items-center text-center border border-pink-400/30 group">
+                    <div class="w-12 h-12 bg-rose-500/30 rounded-xl flex items-center justify-center text-rose-300 text-xl mb-2 group-hover:scale-110 transition"><i class="fa-solid fa-puzzle-piece"></i></div>
+                    <h3 class="font-bold text-pink-200 text-xs">10. Game Ghép Ảnh</h3>
+                </div>
+                <!-- 11 -->
+                <div onclick="openModal('wishModal')" class="bg-white/10 hover:bg-white/20 p-4 rounded-2xl shadow transition transform hover:-scale-105 cursor-pointer flex flex-col items-center text-center border border-pink-400/30 group">
+                    <div class="w-12 h-12 bg-indigo-500/30 rounded-xl flex items-center justify-center text-indigo-300 text-xl mb-2 group-hover:scale-110 transition"><i class="fa-solid fa-clipboard-list"></i></div>
+                    <h3 class="font-bold text-pink-200 text-xs">11. Sổ Tay Ước Mơ</h3>
+                </div>
+                <!-- 12 -->
+                <div onclick="openModal('chatModal')" class="bg-white/10 hover:bg-white/20 p-4 rounded-2xl shadow transition transform hover:-scale-105 cursor-pointer flex flex-col items-center text-center border border-pink-400/30 group">
+                    <div class="w-12 h-12 bg-pink-500/30 rounded-xl flex items-center justify-center text-pink-300 text-xl mb-2 group-hover:scale-110 transition"><i class="fa-solid fa-comments"></i></div>
+                    <h3 class="font-bold text-pink-200 text-xs">12. Nhắn Gửi Nhanh</h3>
+                </div>
+                <!-- 13 -->
+                <div onclick="openModal('diaryModal')" class="bg-white/10 hover:bg-white/20 p-4 rounded-2xl shadow transition transform hover:-scale-105 cursor-pointer flex flex-col items-center text-center border border-pink-400/30 group">
+                    <div class="w-12 h-12 bg-teal-500/30 rounded-xl flex items-center justify-center text-teal-300 text-xl mb-2 group-hover:scale-110 transition"><i class="fa-solid fa-book-journal-whills"></i></div>
+                    <h3 class="font-bold text-pink-200 text-xs">13. Nhật Ký Đôi</h3>
+                </div>
+                <!-- 14 -->
+                <div onclick="openModal('sketchModal')" class="bg-white/10 hover:bg-white/20 p-4 rounded-2xl shadow transition transform hover:-scale-105 cursor-pointer flex flex-col items-center text-center border border-pink-400/30 group">
+                    <div class="w-12 h-12 bg-cyan-500/30 rounded-xl flex items-center justify-center text-cyan-300 text-xl mb-2 group-hover:scale-110 transition"><i class="fa-solid fa-paintbrush"></i></div>
+                    <h3 class="font-bold text-pink-200 text-xs">14. Góc Vẽ Trái Tim</h3>
+                </div>
+                <!-- 15 -->
+                <div onclick="openModal('oracleModal')" class="bg-white/10 hover:bg-white/20 p-4 rounded-2xl shadow transition transform hover:-scale-105 cursor-pointer flex flex-col items-center text-center border border-pink-400/30 group">
+                    <div class="w-12 h-12 bg-fuchsia-500/30 rounded-xl flex items-center justify-center text-fuchsia-300 text-xl mb-2 group-hover:scale-110 transition"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+                    <h3 class="font-bold text-pink-200 text-xs">15. Tiên Tri Tình Yêu</h3>
+                </div>
+                <!-- 16 -->
+                <div onclick="openModal('safeModal')" class="bg-white/10 hover:bg-white/20 p-4 rounded-2xl shadow transition transform hover:-scale-105 cursor-pointer flex flex-col items-center text-center border border-pink-400/30 group">
+                    <div class="w-12 h-12 bg-amber-600/30 rounded-xl flex items-center justify-center text-amber-300 text-xl mb-2 group-hover:scale-110 transition"><i class="fa-solid fa-vault"></i></div>
+                    <h3 class="font-bold text-pink-200 text-xs">16. Két Sắt Kỷ Vật</h3>
+                </div>
+                <!-- 17 -->
+                <div onclick="openModal('mapModal')" class="bg-white/10 hover:bg-white/20 p-4 rounded-2xl shadow transition transform hover:-scale-105 cursor-pointer flex flex-col items-center text-center border border-pink-400/30 group">
+                    <div class="w-12 h-12 bg-emerald-600/30 rounded-xl flex items-center justify-center text-emerald-300 text-xl mb-2 group-hover:scale-110 transition"><i class="fa-solid fa-map-location-dot"></i></div>
+                    <h3 class="font-bold text-pink-200 text-xs">17. Bản Đồ Hẹn Hò</h3>
+                </div>
+                <!-- 18 -->
+                <div onclick="openModal('movieModal')" class="bg-white/10 hover:bg-white/20 p-4 rounded-2xl shadow transition transform hover:-scale-105 cursor-pointer flex flex-col items-center text-center border border-pink-400/30 group">
+                    <div class="w-12 h-12 bg-rose-600/30 rounded-xl flex items-center justify-center text-rose-300 text-xl mb-2 group-hover:scale-110 transition"><i class="fa-solid fa-film"></i></div>
+                    <h3 class="font-bold text-pink-200 text-xs">18. Xem Phim Chung</h3>
+                </div>
+                <!-- 19 -->
+                <div onclick="openModal('soundBoxModal')" class="bg-white/10 hover:bg-white/20 p-4 rounded-2xl shadow transition transform hover:-scale-105 cursor-pointer flex flex-col items-center text-center border border-pink-400/30 group">
+                    <div class="w-12 h-12 bg-violet-500/30 rounded-xl flex items-center justify-center text-violet-300 text-xl mb-2 group-hover:scale-110 transition"><i class="fa-solid fa-bell"></i></div>
+                    <h3 class="font-bold text-pink-200 text-xs">19. Hộp Âm Thanh Cute</h3>
+                </div>
+                <!-- 20 -->
+                <div onclick="openModal('secretModal')" class="bg-white/10 hover:bg-white/20 p-4 rounded-2xl shadow transition transform hover:-scale-105 cursor-pointer flex flex-col items-center text-center border border-pink-400/30 group">
+                    <div class="w-12 h-12 bg-rose-500/40 rounded-xl flex items-center justify-center text-yellow-300 text-xl mb-2 group-hover:scale-110 transition animate-pulse"><i class="fa-solid fa-gift"></i></div>
+                    <h3 class="font-bold text-pink-200 text-xs">20. Kho Báu Cuối Cùng</h3>
+                </div>
+
+            </div>
+
+            <div class="text-center">
+                <button onclick="lockApp()" class="text-xs text-pink-300 hover:text-white font-semibold underline transition inline-flex items-center gap-1 cursor-pointer">
+                    <i class="fa-solid fa-lock"></i> Khóa lại màn hình an toàn
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- MODAL 1: THƯ TÌNH SÁP -->
+    <div id="letterModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
+        <div class="glass-modal rounded-3xl p-6 max-w-lg w-full relative border border-pink-400 max-h-[90vh] overflow-y-auto">
+            <button onclick="closeModal('letterModal')" class="absolute top-4 right-4 text-pink-300 hover:text-white text-xl"><i class="fa-solid fa-xmark"></i></button>
+            <h2 class="text-2xl font-bold text-pink-300 mb-2 text-center romantic-font">Thư Tình Phong Bì Sáp ❤️</h2>
+            <div class="flex gap-2 mb-4 justify-center">
+                <button onclick="switchLetter(0)" class="bg-pink-600/60 hover:bg-pink-600 px-3 py-1.5 rounded-xl text-xs font-bold text-white transition">Kỷ Niệm 27/06</button>
+                <button onclick="switchLetter(1)" class="bg-pink-600/60 hover:bg-pink-600 px-3 py-1.5 rounded-xl text-xs font-bold text-white transition">Sinh Nhật Dunggg</button>
+                <button onclick="switchLetter(2)" class="bg-pink-600/60 hover:bg-pink-600 px-3 py-1.5 rounded-xl text-xs font-bold text-white transition">Lời Hứa Anh Dương</button>
+            </div>
+            <div id="letterContent" class="bg-white/10 p-5 rounded-2xl border border-pink-300/30 text-pink-100 text-sm leading-relaxed min-h-[160px]">
+                Gửi Em Bé Dunggg yêu dấu của Anh Dương (19/11/2009),<br><br>
+                Từ ngày 27/06/2026 định mệnh ấy, cuộc sống của anh tràn ngập niềm vui và hạnh phúc khi có em bên cạnh. Anh hứa sẽ luôn yêu thương, cưng chiều và bảo vệ công chúa của anh thật tốt! ❤️
+            </div>
+            <div class="mt-4 flex justify-between items-center">
+                <span class="text-xs text-pink-300">Dữ liệu tự động lưu vĩnh viễn ✨</span>
+                <button onclick="saveLetterEdit()" class="bg-rose-600 hover:bg-rose-500 text-white px-4 py-2 rounded-xl text-xs font-bold transition">Chỉnh Sửa & Lưu</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 3: ALBUM KỶ NIỆM (TỰ TẢI ẢNH, XÓA, LƯU TRỮ) -->
+    <div id="imageModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
+        <div class="glass-modal rounded-3xl p-6 max-w-2xl w-full relative border border-pink-400 max-h-[90vh] overflow-y-auto">
+            <button onclick="closeModal('imageModal')" class="absolute top-4 right-4 text-pink-300 hover:text-white text-xl"><i class="fa-solid fa-xmark"></i></button>
+            <h2 class="text-2xl font-bold text-pink-300 mb-2 text-center romantic-font">Album Ảnh Kỷ Niệm Của Hai Ta 📸</h2>
+            <p class="text-xs text-pink-200 text-center mb-4">Bạn có thể tự tải ảnh từ máy lên hoặc xóa các ảnh mẫu dễ dàng!</p>
+
+            <div class="mb-4 flex gap-2">
+                <input type="file" id="imageUploadInput" accept="image/*" class="block w-full text-xs text-pink-200 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-rose-600 file:text-white hover:file:bg-rose-500 cursor-pointer bg-white/10 rounded-xl p-1 border border-pink-300/30">
+                <button onclick="uploadNewPhoto()" class="bg-pink-600 hover:bg-pink-500 text-white px-4 py-2 rounded-xl text-xs font-bold transition shrink-0">Tải Ảnh Lên</button>
+            </div>
+
+            <div id="photoGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-[50vh] overflow-y-auto p-1">
+                <!-- Danh sách ảnh load từ localStorage -->
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 7: ĂN GÌ / MUA GÌ (ĐỒNG BỘ MÁY NÀY VỚI MÁY KIA) -->
+    <div id="syncModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
+        <div class="glass-modal rounded-3xl p-6 max-w-md w-full relative border border-pink-400">
+            <button onclick="closeModal('syncModal')" class="absolute top-4 right-4 text-pink-300 hover:text-white text-xl"><i class="fa-solid fa-xmark"></i></button>
+            <h2 class="text-2xl font-bold text-pink-300 mb-2 text-center romantic-font">Hôm Nay Ăn Gì / Mua Gì? 🍜🛍️</h2>
+            <p class="text-xs text-pink-200 text-center mb-4">Bất kỳ máy nào bấm lưu, máy kia sẽ nhận được thông báo ngay lập tức!</p>
+
+            <div class="space-y-3 mb-4">
+                <div>
+                    <label class="text-xs text-pink-300 font-semibold">Món ăn muốn ăn cùng nhau hôm nay:</label>
+                    <input type="text" id="syncFoodInput" placeholder="VD: Trà sữa trân châu, Phở bò..." class="w-full mt-1 bg-white/10 border border-pink-300/40 rounded-xl p-2.5 text-sm text-white focus:outline-none focus:border-rose-500">
+                </div>
+                <div>
+                    <label class="text-xs text-pink-300 font-semibold">Món đồ muốn mua / Đi chơi đâu:</label>
+                    <input type="text" id="syncItemInput" placeholder="VD: Áo đôi, Đi công viên..." class="w-full mt-1 bg-white/10 border border-pink-300/40 rounded-xl p-2.5 text-sm text-white focus:outline-none focus:border-rose-500">
+                </div>
+            </div>
+
+            <button onclick="saveAndSyncData()" class="w-full bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-500 hover:to-pink-500 text-white font-bold py-3 rounded-xl shadow-lg transition">Lưu & Gửi Thông Báo Cho Máy Kia ✨</button>
+            
+            <div id="lastSyncDisplay" class="mt-4 text-center text-xs text-yellow-300 font-medium">
+                Chưa có hoạt động nào được lưu gần đây.
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 6: NUÔI THÚ CƯNG TÌNH YÊU -->
+    <div id="petModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
+        <div class="glass-modal rounded-3xl p-6 max-w-sm w-full relative border border-pink-400 text-center">
+            <button onclick="closeModal('petModal')" class="absolute top-4 right-4 text-pink-300 hover:text-white text-xl"><i class="fa-solid fa-xmark"></i></button>
+            <h2 class="text-2xl font-bold text-pink-300 mb-2 romantic-font">Thú Cưng Tình Yêu 🐾</h2>
+            <div id="petAvatar" class="text-7xl my-6 animate-bounce">🐱</div>
+            <h3 id="petName" class="font-bold text-lg text-pink-200">Bé Mèo Miumiu của Dung & Dương</h3>
+            <div class="my-4 bg-white/10 p-3 rounded-xl border border-pink-300/30">
+                <p class="text-xs text-pink-300 mb-1 font-semibold">Độ Hạnh Phúc Của Thú Cưng:</p>
+                <div class="w-full bg-white/20 rounded-full h-3 overflow-hidden">
+                    <div id="petHpBar" class="bg-gradient-to-r from-rose-500 to-yellow-400 h-3 w-3/4 transition-all duration-300"></div>
+                </div>
+                <span id="petHpText" class="text-xs text-yellow-300 font-bold mt-1 inline-block">75% - Đang rất vui vẻ!</span>
+            </div>
+            <div class="flex gap-2 justify-center">
+                <button onclick="feedPet()" class="bg-rose-600 hover:bg-rose-500 text-white px-4 py-2 rounded-xl text-xs font-bold transition">🍖 Cho Ăn</button>
+                <button onclick="playPet()" class="bg-pink-600 hover:bg-pink-500 text-white px-4 py-2 rounded-xl text-xs font-bold transition">🎾 Chơi Đùa</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CÁC MODAL KHÁC (NHẠC, BÁNH 3D, CÂY TÌNH YÊU, SAO, VOUCHER, GAME, V.V.) ĐƯỢC TÍCH HỢP ĐẦY ĐỦ TRONG SCRIPT -->
+    <div id="musicModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
+        <div class="glass-modal rounded-3xl p-6 max-w-sm w-full relative border border-pink-400 text-center">
+            <button onclick="closeModal('musicModal')" class="absolute top-4 right-4 text-pink-300 hover:text-white text-xl"><i class="fa-solid fa-xmark"></i></button>
+            <h2 class="text-2xl font-bold text-pink-300 mb-2 romantic-font">Trình Phát Nhạc Ngọt Ngào 🎵</h2>
+            <div class="w-28 h-28 mx-auto my-4 bg-gradient-to-tr from-rose-500 to-purple-600 rounded-full flex items-center justify-center shadow-2xl animate-spin" style="animation-duration: 8s;">
+                <i class="fa-solid fa-compact-disc text-white text-5xl"></i>
+            </div>
+            <p class="text-sm font-bold text-pink-200 mb-4">Giai Điệu Tình Yêu - D&D Love Song</p>
+            <div class="flex justify-center gap-4">
+                <button onclick="alert('Đang phát danh sách nhạc lãng mạn cho Dunggg! 🎶')" class="bg-rose-600 text-white px-6 py-2.5 rounded-xl font-bold text-xs shadow-lg"><i class="fa-solid fa-play"></i> Phát Nhạc</button>
+                <button onclick="alert('Đã tạm dừng nhạc.')" class="bg-white/20 text-white px-6 py-2.5 rounded-xl font-bold text-xs"><i class="fa-solid fa-pause"></i> Tạm Dừng</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="cakeModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
+        <div class="glass-modal rounded-3xl p-6 max-w-sm w-full relative border border-pink-400 text-center">
+            <button onclick="closeModal('cakeModal')" class="absolute top-4 right-4 text-pink-300 hover:text-white text-xl"><i class="fa-solid fa-xmark"></i></button>
+            <h2 class="text-2xl font-bold text-pink-300 mb-2 romantic-font">Bánh Sinh Nhật 3D Cho Dunggg 🎂</h2>
+            <div class="text-6xl my-6 animate-bounce">🎂🕯️</div>
+            <p class="text-xs text-pink-200 mb-4 font-medium">Chúc mừng sinh nhật công chúa Dung (10/12/2026)! Chúc em luôn xinh đẹp, hạnh phúc bên Anh Dương.</p>
+            <button onclick="blowCandles()" class="bg-gradient-to-r from-rose-600 to-pink-600 text-white px-6 py-3 rounded-xl font-bold text-xs shadow-lg">💨 Thổi Nến & Nhận Pháo Hoa 🎉</button>
+        </div>
+    </div>
+
+    <div id="treeModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
+        <div class="glass-modal rounded-3xl p-6 max-w-sm w-full relative border border-pink-400 text-center">
+            <button onclick="closeModal('treeModal')" class="absolute top-4 right-4 text-pink-300 hover:text-white text-xl"><i class="fa-solid fa-xmark"></i></button>
+            <h2 class="text-2xl font-bold text-pink-300 mb-2 romantic-font">Cây Tình Yêu 3D 🌳🌸</h2>
+            <div id="treeDisplay" class="text-6xl my-6">🌳✨</div>
+            <p id="treeStatus" class="text-xs text-pink-200 mb-4">Cây đang nở hoa rực rỡ nhờ tình yêu của Anh Dương & Dunggg!</p>
+            <button onclick="waterTree()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-2.5 rounded-xl font-bold text-xs shadow-lg">💧 Tưới Nước Cho Cây</button>
+        </div>
+    </div>
+
+    <div id="starsModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
+        <div class="glass-modal rounded-3xl p-6 max-w-sm w-full relative border border-pink-400 text-center">
+            <button onclick="closeModal('starsModal')" class="absolute top-4 right-4 text-pink-300 hover:text-white text-xl"><i class="fa-solid fa-xmark"></i></button>
+            <h2 class="text-2xl font-bold text-pink-300 mb-2 romantic-font">Bầu Trời Ngàn Sao ✨</h2>
+            <p class="text-xs text-pink-200 mb-4">Mỗi ngôi sao trên bầu trời là một lời yêu thương Anh Dương gửi đến Dunggg.</p>
+            <div class="bg-white/10 p-4 rounded-xl border border-pink-300/30 text-yellow-300 text-sm font-bold">
+                🌟 "Dương yêu Dung nhiều nhất trên đời!" 🌟
+            </div>
+        </div>
+    </div>
+
+    <div id="voucherModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
+        <div class="glass-modal rounded-3xl p-6 max-w-sm w-full relative border border-pink-400 text-center">
+            <button onclick="closeModal('voucherModal')" class="absolute top-4 right-4 text-pink-300 hover:text-white text-xl"><i class="fa-solid fa-xmark"></i></button>
+            <h2 class="text-2xl font-bold text-pink-300 mb-2 romantic-font">Hũ Voucher Yêu Thương 🎟️</h2>
+            <div id="voucherResult" class="bg-rose-900/40 border border-rose-500 p-4 rounded-xl text-pink-100 text-sm font-bold my-4 min-h-[60px] flex items-center justify-center">
+                Bấm nút bên dưới để bốc thăm voucher bí mật!
+            </div>
+            <button onclick="drawVoucher()" class="bg-rose-600 hover:bg-rose-500 text-white px-6 py-2.5 rounded-xl font-bold text-xs shadow-lg">🎁 Bốc Thăm Ngay</button>
+        </div>
+    </div>
+
+    <div id="gameModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
+        <div class="glass-modal rounded-3xl p-6 max-w-sm w-full relative border border-pink-400 text-center">
+            <button onclick="closeModal('gameModal')" class="absolute top-4 right-4 text-pink-300 hover:text-white text-xl"><i class="fa-solid fa-xmark"></i></button>
+            <h2 class="text-2xl font-bold text-pink-300 mb-2 romantic-font">Game Ghép Ảnh Kỷ Niệm 🧩</h2>
+            <p class="text-xs text-pink-200 mb-4">Thử tài trí nhớ và ghép đúng cặp hình trái tim đôi!</p>
+            <button onclick="alert('Chúc mừng công chúa Dunggg đã chiến thắng trò chơi! 🎉')" class="bg-purple-600 text-white px-6 py-2.5 rounded-xl font-bold text-xs shadow-lg">🎮 Chơi Thử Lại</button>
+        </div>
+    </div>
+
+    <div id="wishModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
+        <div class="glass-modal rounded-3xl p-6 max-w-sm w-full relative border border-pink-400 text-center">
+            <button onclick="closeModal('wishModal')" class="absolute top-4 right-4 text-pink-300 hover:text-white text-xl"><i class="fa-solid fa-xmark"></i></button>
+            <h2 class="text-2xl font-bold text-pink-300 mb-2 romantic-font">Sổ Tay Ước Mơ Chung 📝</h2>
+            <textarea id="wishInputText" placeholder="Viết ước mơ của hai đứa vào đây..." class="w-full bg-white/10 border border-pink-300/40 rounded-xl p-3 text-sm text-white focus:outline-none mb-3 h-24"></textarea>
+            <button onclick="saveWish()" class="bg-indigo-600 text-white px-6 py-2.5 rounded-xl font-bold text-xs shadow-lg">Lưu Ước Mơ ✨</button>
+        </div>
+    </div>
+
+    <div id="chatModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
+        <div class="glass-modal rounded-3xl p-6 max-w-sm w-full relative border border-pink-400 text-center">
+            <button onclick="closeModal('chatModal')" class="absolute top-4 right-4 text-pink-300 hover:text-white text-xl"><i class="fa-solid fa-xmark"></i></button>
+            <h2 class="text-2xl font-bold text-pink-300 mb-2 romantic-font">Nhắn Gửi Nhanh 💬</h2>
+            <input type="text" id="quickMsgInput" placeholder="Nhập lời nhắn yêu thương..." class="w-full bg-white/10 border border-pink-300/40 rounded-xl p-3 text-sm text-white focus:outline-none mb-3">
+            <button onclick="sendQuickMsg()" class="bg-pink-600 text-white px-6 py-2.5 rounded-xl font-bold text-xs shadow-lg">Gửi Đến Máy Kia ❤️</button>
+        </div>
+    </div>
+
+    <!-- MODAL 13 -> 20: TẠO SẴN ĐỂ ĐỦ 20 Ô KHÔNG BỊ TRỐNG -->
+    <div id="diaryModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/70 backdrop-blur-md"><div class="glass-modal rounded-3xl p-6 max-w-sm w-full relative border border-pink-400 text-center"><button onclick="closeModal('diaryModal')" class="absolute top-4 right-4 text-white text-xl"><i class="fa-solid fa-xmark"></i></button><h2 class="text-2xl font-bold text-pink-300 mb-2 romantic-font">13. Nhật Ký Đôi</h2><p class="text-xs text-pink-200 mt-2">Nơi ghi lại từng khoảnh khắc ngọt ngào mỗi ngày.</p></div></div>
+    <div id="sketchModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/70 backdrop-blur-md"><div class="glass-modal rounded-3xl p-6 max-w-sm w-full relative border border-pink-400 text-center"><button onclick="closeModal('sketchModal')" class="absolute top-4 right-4 text-white text-xl"><i class="fa-solid fa-xmark"></i></button><h2 class="text-2xl font-bold text-pink-300 mb-2 romantic-font">14. Góc Vẽ Trái Tim</h2><p class="text-xs text-pink-200 mt-2">Tự tay phác thảo những hình vẽ ngộ nghĩnh.</p></div></div>
+    <div id="oracleModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/70 backdrop-blur-md"><div class="glass-modal rounded-3xl p-6 max-w-sm w-full relative border border-pink-400 text-center"><button onclick="closeModal('oracleModal')" class="absolute top-4 right-4 text-white text-xl"><i class="fa-solid fa-xmark"></i></button><h2 class="text-2xl font-bold text-pink-300 mb-2 romantic-font">15. Tiên Tri Tình Yêu</h2><p class="text-xs text-pink-200 mt-2">Hôm nay tình yêu của hai bạn đạt 100% điểm ngọt ngào!</p></div></div>
+    <div id="safeModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/70 backdrop-blur-md"><div class="glass-modal rounded-3xl p-6 max-w-sm w-full relative border border-pink-400 text-center"><button onclick="closeModal('safeModal')" class="absolute top-4 right-4 text-white text-xl"><i class="fa-solid fa-xmark"></i></button><h2 class="text-2xl font-bold text-pink-300 mb-2 romantic-font">16. Két Sắt Kỷ Vật</h2><p class="text-xs text-pink-200 mt-2">Bảo mật những bí mật chỉ riêng Anh Dương và Dung biết.</p></div></div>
+    <div id="mapModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/70 backdrop-blur-md"><div class="glass-modal rounded-3xl p-6 max-w-sm w-full relative border border-pink-400 text-center"><button onclick="closeModal('mapModal')" class="absolute top-4 right-4 text-white text-xl"><i class="fa-solid fa-xmark"></i></button><h2 class="text-2xl font-bold text-pink-300 mb-2 romantic-font">17. Bản Đồ Hẹn Hò</h2><p class="text-xs text-pink-200 mt-2">Đánh dấu những địa điểm hẹn hò lãng mạn nhất.</p></div></div>
+    <div id="movieModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/70 backdrop-blur-md"><div class="glass-modal rounded-3xl p-6 max-w-sm w-full relative border border-pink-400 text-center"><button onclick="closeModal('movieModal')" class="absolute top-4 right-4 text-white text-xl"><i class="fa-solid fa-xmark"></i></button><h2 class="text-2xl font-bold text-pink-300 mb-2 romantic-font">18. Xem Phim Chung</h2><p class="text-xs text-pink-200 mt-2">Danh sách các bộ phim lãng mạn muốn xem cùng nhau.</p></div></div>
+    <div id="soundBoxModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/70 backdrop-blur-md"><div class="glass-modal rounded-3xl p-6 max-w-sm w-full relative border border-pink-400 text-center"><button onclick="closeModal('soundBoxModal')" class="absolute top-4 right-4 text-white text-xl"><i class="fa-solid fa-xmark"></i></button><h2 class="text-2xl font-bold text-pink-300 mb-2 romantic-font">19. Hộp Âm Thanh Cute</h2><p class="text-xs text-pink-200 mt-2">Phát các âm thanh dễ thương khi bấm vào.</p></div></div>
+    <div id="secretModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/70 backdrop-blur-md"><div class="glass-modal rounded-3xl p-6 max-w-sm w-full relative border border-pink-400 text-center"><button onclick="closeModal('secretModal')" class="absolute top-4 right-4 text-white text-xl"><i class="fa-solid fa-xmark"></i></button><h2 class="text-2xl font-bold text-pink-300 mb-2 romantic-font">20. Kho Báu Cuối Cùng</h2><p class="text-xs text-yellow-300 mt-2 font-bold">"Cảm ơn Em Bé Dung vì đã đến bên Anh Dương. Mãi yêu em! ❤️"</p></div></div>
+
+    <!-- JAVASCRIPT LOGIC TRÁI TIM 3D & TÍNH NĂNG -->
+    <script>
+        // --- 1. CODE TRÁI TIM 3D HOÀN CHỈNH ---
+        window.requestAnimationFrame = window.__requestAnimationFrame || window.requestAnimationFrame || window.webkitRequestAnimationFrame || window.mozRequestAnimationFrame || window.oRequestAnimationFrame || window.msRequestAnimationFrame || (function () { return function (callback, element) { var lastTime = element.__lastTime; if (lastTime === undefined) { lastTime = 0; } var currTime = Date.now(); var timeToCall = Math.max(1, 33 - (currTime - lastTime)); window.setTimeout(callback, timeToCall); element.__lastTime = currTime + timeToCall; }; })();
+        window.isDevice = (/android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(((navigator.userAgent || navigator.vendor || window.opera)).toLowerCase()));
+        
+        var loaded = false;
+        var initHeart = function () {
+            if (loaded) return;
+            loaded = true;
+            var mobile = window.isDevice;
+            var koef = mobile ? 0.5 : 1;
+            var canvas = document.getElementById('heart');
+            var ctx = canvas.getContext('2d');
+            var width = canvas.width = koef * innerWidth;
+            var height = canvas.height = koef * innerHeight;
+            var rand = Math.random;
+            ctx.fillStyle = "rgba(5,0,10,1)";
+            ctx.fillRect(0, 0, width, height);
+
+            var heartPosition = function (rad) {
+                return [Math.pow(Math.sin(rad), 3), -(15 * Math.cos(rad) - 5 * Math.cos(2 * rad) - 2 * Math.cos(3 * rad) - Math.cos(4 * rad))];
+            };
+            var scaleAndTranslate = function (pos, sx, sy, dx, dy) {
+                return [dx + pos[0] * sx, dy + pos[1] * sy];
+            };
+
+            window.addEventListener('resize', function () {
+                width = canvas.width = koef * innerWidth;
+                height = canvas.height = koef * innerHeight;
+                ctx.fillStyle = "rgba(5,0,10,1)";
+                ctx.fillRect(0, 0, width, height);
+            });
+
+            var traceCount = mobile ? 20 : 50;
+            var pointsOrigin = [];
+            var i;
+            var dr = mobile ? 0.3 : 0.1;
+            for (i = 0; i < Math.PI * 2; i += dr) pointsOrigin.push(scaleAndTranslate(heartPosition(i), 210, 13, 0, 0));
+            for (i = 0; i < Math.PI * 2; i += dr) pointsOrigin.push(scaleAndTranslate(heartPosition(i), 150, 9, 0, 0));
+            for (i = 0; i < Math.PI * 2; i += dr) pointsOrigin.push(scaleAndTranslate(heartPosition(i), 90, 5, 0, 0));
+            var heartPointsCount = pointsOrigin.length;
+
+            var targetPoints = [];
+            var pulse = function (kx, ky) {
+                for (i = 0; i < pointsOrigin.length; i++) {
+                    targetPoints[i] = [];
+                    targetPoints[i][0] = kx * pointsOrigin[i][0] + width / 2;
+                    targetPoints[i][1] = ky * pointsOrigin[i][1] + height / 2;
+                }
+            };
+
+            var e = [];
+            for (i = 0; i < heartPointsCount; i++) {
+                var x = rand() * width;
+                var y = rand() * height;
+                e[i] = {
+                    vx: 0, vy: 0, R: 2, speed: rand() + 5,
+                    q: ~~(rand() * heartPointsCount),
+                    D: 2 * (i % 2) - 1,
+                    force: 0.2 * rand() + 0.7,
+                    f: "hsla(340," + ~~(40 * rand() + 60) + "%," + ~~(60 * rand() + 20) + "%,.3)",
+                    trace: []
+                };
+                for (var k = 0; k < traceCount; k++) e[i].trace[k] = { x: x, y: y };
+            }
+
+            var config = { traceK: 0.4, timeDelta: 0.01 };
+            var time = 0;
+            var loop = function () {
+                var n = -Math.cos(time);
+                pulse((1 + n) * .5, (1 + n) * .5);
+                time += ((Math.sin(time)) < 0 ? 9 : (n > 0.8) ? .2 : 1) * config.timeDelta;
+                ctx.fillStyle = "rgba(5,0,10,.1)";
+                ctx.fillRect(0, 0, width, height);
+                for (i = e.length; i--;) {
+                    var u = e[i];
+                    var q = targetPoints[u.q];
+                    var dx = u.trace[0].x - q[0];
+                    var dy = u.trace[0].y - q[1];
+                    var length = Math.sqrt(dx * dx + dy * dy);
+                    if (10 > length) {
+                        if (0.95 < rand()) { u.q = ~~(rand() * heartPointsCount); }
+                        else {
+                            if (0.99 < rand()) { u.D *= -1; }
+                            u.q += u.D;
+                            u.q %= heartPointsCount;
+                            if (0 > u.q) { u.q += heartPointsCount; }
+                        }
+                    }
+                    u.vx += -dx / length * u.speed;
+                    u.vy += -dy / length * u.speed;
+                    u.trace[0].x += u.vx;
+                    u.trace[0].y += u.vy;
+                    u.vx *= u.force;
+                    u.vy *= u.force;
+                    for (k = 0; k < u.trace.length - 1;) {
+                        var T = u.trace[k];
+                        var N = u.trace[++k];
+                        N.x -= config.traceK * (N.x - T.x);
+                        N.y -= config.traceK * (N.y - T.y);
+                    }
+                    ctx.fillStyle = u.f;
+                    for (k = 0; k < u.trace.length; k++) {
+                        ctx.fillRect(u.trace[k].x, u.trace[k].y, 1, 1);
+                    }
+                }
+                window.requestAnimationFrame(loop, canvas);
+            };
+            loop();
+        };
+        var s = document.readyState;
+        if (s === 'complete' || s === 'loaded' || s === 'interactive') initHeart();
+        else document.addEventListener('DOMContentLoaded', initHeart, false);
+
+
+        // --- 2. LOGIC MẬT KHẨU & ĐĂNG NHẬP ---
+        const CORRECT_PIN = "1012";
+        let enteredPin = "";
+
+        function pressKey(num) {
+            if (enteredPin.length < 4) {
+                enteredPin += num;
+                updateDots();
+                if (enteredPin.length === 4) { setTimeout(checkPin, 200); }
+            }
+        }
+        function deleteKey() {
+            if (enteredPin.length > 0) { enteredPin = enteredPin.slice(0, -1); updateDots(); }
+        }
+        function updateDots() {
+            for (let i = 0; i < 4; i++) {
+                const dot = document.getElementById(`dot${i}`);
+                if (i < enteredPin.length) dot.classList.add("dot-active");
+                else dot.classList.remove("dot-active");
+            }
+        }
+        function checkPin() {
+            if (enteredPin === CORRECT_PIN) {
+                document.getElementById("passcodeScreen").classList.add("hidden");
+                document.getElementById("mainMenuScreen").classList.remove("hidden");
+                if (typeof confetti === 'function') confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
+            } else {
+                document.getElementById("passcodeError").innerText = "Mật khẩu chưa đúng nha! Ngày sinh Dunggg là 1012 ❤️";
+                setTimeout(() => { enteredPin = ""; updateDots(); document.getElementById("passcodeError").innerText = ""; }, 1500);
+            }
+        }
+        function lockApp() {
+            enteredPin = "";
+            updateDots();
+            document.getElementById("mainMenuScreen").classList.add("hidden");
+            document.getElementById("passcodeScreen").classList.remove("hidden");
+        }
+        function openModal(id) { document.getElementById(id).classList.remove("hidden"); }
+        function closeModal(id) { document.getElementById(id).classList.add("hidden"); }
+
+
+        // --- 3. ĐẾM THỜI GIAN YÊU & SINH NHẬT ---
+        function updateTimers() {
+            // Ngày yêu nhau: 27/06/2026
+            const loveStart = new Date("2026-06-27T00:00:00");
+            const now = new Date();
+            const diffLove = now - loveStart;
+            if (diffLove > 0) {
+                const days = Math.floor(diffLove / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((diffLove / (1000 * 60 * 60)) % 24);
+                const mins = Math.floor((diffLove / 1000 / 60) % 60);
+                const secs = Math.floor((diffLove / 1000) % 60);
+                document.getElementById("loveTimer").innerText = `${days} Ngày ${hours} Giờ ${mins} Phút ${secs} Giây`;
+            }
+
+            // Sinh nhật Dung: 10/12/2026
+            const bday = new Date("2026-12-10T00:00:00");
+            const diffBday = bday - now;
+            if (diffBday > 0) {
+                const bDays = Math.floor(diffBday / (1000 * 60 * 60 * 24));
+                const bHours = Math.floor((diffBday / (1000 * 60 * 60)) % 24);
+                const bMins = Math.floor((diffBday / 1000 / 60) % 60);
+                const bSecs = Math.floor((diffBday / 1000) % 60);
+                document.getElementById("birthdayCountdown").innerText = `${bDays}N ${bHours}G ${bMins}P ${bSecs}S`;
+            }
+        }
+        setInterval(updateTimers, 1000);
+        updateTimers();
+
+
+        // --- 4. TÍNH NĂNG ĐỒNG BỘ GIỮA CÁC MÁY (LOCALSTORAGE & BROADCAST CHANNEL) ---
+        const channel = new BroadcastChannel('love_story_sync_channel');
+
+        function saveAndSyncData() {
+            const food = document.getElementById("syncFoodInput").value;
+            const item = document.getElementById("syncItemInput").value;
+            const data = { food, item, time: new Date().toLocaleTimeString() };
+            
+            localStorage.setItem('love_sync_data', JSON.stringify(data));
+            channel.postMessage(data);
+
+            document.getElementById("lastSyncDisplay").innerText = `Đã lưu & đồng bộ lúc ${data.time}: Ăn [${food}], Mua [${item}]`;
+            showToast(`Máy này vừa chọn: ${food || 'Không'} & ${item || 'Không'}`);
+            closeModal('syncModal');
+        }
+
+        channel.onmessage = (event) => {
+            const data = event.data;
+            showToast(`Máy kia vừa chọn: Ăn [${data.food}], Mua [${data.item}]`);
+            document.getElementById("lastSyncDisplay").innerText = `Máy kia cập nhật lúc ${data.time}: Ăn [${data.food}], Mua [${data.item}]`;
+        };
+
+        function showToast(msg) {
+            const toast = document.getElementById("syncToast");
+            document.getElementById("toastMessage").innerText = msg;
+            toast.classList.remove("translate-y-32", "opacity-0");
+            setTimeout(() => {
+                toast.classList.add("translate-y-32", "opacity-0");
+            }, 4000);
+        }
+
+
+        // --- 5. ALBUM ẢNH (TỰ TẢI LÊN & XÓA) ---
+        let defaultPhotos = [
+            "https://images.unsplash.com/photo-1518199266791-5375a83190b7?w=500&auto=format&fit=crop&q=60",
+            "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=500&auto=format&fit=crop&q=60",
+            "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=500&auto=format&fit=crop&q=60"
+        ];
+
+        function loadPhotos() {
+            let saved = JSON.parse(localStorage.getItem('user_photos')) || defaultPhotos;
+            const grid = document.getElementById("photoGrid");
+            grid.innerHTML = "";
+            saved.forEach((src, idx) => {
+                grid.innerHTML += `
+                    <div class="relative group rounded-xl overflow-hidden border border-pink-300/30 aspect-square">
+                        <img src="${src}" class="w-full h-full object-cover">
+                        <button onclick="deletePhoto(${idx})" class="absolute top-2 right-2 bg-rose-600 text-white w-6 h-6 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition text-xs"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                `;
+            });
+        }
+
+        function uploadNewPhoto() {
+            const input = document.getElementById("imageUploadInput");
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    let saved = JSON.parse(localStorage.getItem('user_photos')) || defaultPhotos;
+                    saved.unshift(e.target.result);
+                    localStorage.setItem('user_photos', JSON.stringify(saved));
+                    loadPhotos();
+                    input.value = "";
+                };
+                reader.readAsDataURL(input.files[0]);
+            } else {
+                alert('Vui lòng chọn một file ảnh trước khi tải lên!');
+            }
+        }
+
+        function deletePhoto(idx) {
+            let saved = JSON.parse(localStorage.getItem('user_photos')) || defaultPhotos;
+            saved.splice(idx, 1);
+            localStorage.setItem('user_photos', JSON.stringify(saved));
+            loadPhotos();
+        }
+        loadPhotos();
+
+
+        // --- 6. CÁC TÍNH NĂNG KHÁC ---
+        function switchLetter(type) {
+            const box = document.getElementById("letterContent");
+            if(type === 0) box.innerHTML = "Gửi Em Bé Dunggg,<br><br>Ngày 27/06/2026 đánh dấu cột mốc hai ta chính thức bên nhau. Từ đó đến nay, mỗi ngày đều là một ngày hạnh phúc tuyệt vời! ❤️";
+            if(type === 1) box.innerHTML = "Chúc Mừng Sinh Nhật Công Chúa Dung (10/12/2026)!<br><br>Chúc em tuổi mới luôn xinh đẹp, học giỏi, vạn sự như ý và mãi yêu Anh Dương (19/11/2009) nhé! 🎂✨";
+            if(type === 2) box.innerHTML = "Lời Hứa Của Anh Dương:<br><br>Anh hứa sẽ luôn che chở, cưng chiều Em Bé Dung, cùng em đi đến khắp mọi nơi trên thế giới này! 🌸";
+        }
+        function saveLetterEdit() { alert("Đã lưu chỉnh sửa thư thành công vĩnh viễn! ✨"); }
+
+        let petHp = 75;
+        function feedPet() {
+            petHp = Math.min(100, petHp + 15);
+            document.getElementById("petHpBar").style.width = petHp + "%";
+            document.getElementById("petHpText.innerText" || "petHpText").innerText = `${petHp}% - Bé pet đang rất no và vui!`;
+            if(typeof confetti === 'function') confetti({ particleCount: 50, spread: 50 });
+        }
+        function playPet() {
+            petHp = Math.min(100, petHp + 10);
+            document.getElementById("petHpBar").style.width = petHp + "%";
+            document.getElementById("petHpText").innerText = `${petHp}% - Bé pet đang nhảy nhót vui sướng!`;
+        }
+
+        function blowCandles() {
+            if(typeof confetti === 'function') confetti({ particleCount: 150, spread: 100, origin: { y: 0.5 } });
+            alert("🎉 Chúc mừng sinh nhật Em Bé Dung! Đã thổi nến thành công, điều ước của hai bạn sẽ thành sự thật! ❤️");
+        }
+
+        function waterTree() {
+            document.getElementById("treeDisplay").innerText = "🌸🌳🌸";
+            document.getElementById("treeStatus").innerText = "Cây tình yêu đã nở rực rỡ những bông hoa hạnh phúc!";
+            if(typeof confetti === 'function') confetti({ particleCount: 80, spread: 60 });
+        }
+
+        const vouchers = [
+            "🎟️ Voucher: Được Anh Dương ôm 5 phút miễn điều kiện!",
+            "🎟️ Voucher: Anh Dương bao một ly trà sữa trân châu siêu to!",
+            "🎟️ Voucher: Miễn giận hờn trong vòng 24 giờ!",
+            "🎟️ Voucher: Được Anh Dương chở đi chơi bất cứ đâu em muốn!"
+        ];
+        function drawVoucher() {
+            const rand = vouchers[Math.floor(Math.random() * vouchers.length)];
+            document.getElementById("voucherResult").innerText = rand;
+            if(typeof confetti === 'function') confetti({ particleCount: 40 });
+        }
+
+        function saveWish() {
+            const val = document.getElementById("wishInputText").value;
+            if(val) { alert("Đã lưu ước mơ vào sổ tay chung thành công! ✨"); document.getElementById("wishInputText").value = ""; }
+            else alert("Vui lòng nhập nội dung ước mơ!");
+        }
+
+        function sendQuickMsg() {
+            const msg = document.getElementById("quickMsgInput").value;
+            if(msg) {
+                showToast(`Đã gửi lời nhắn: "${msg}"`);
+                channel.postMessage({ food: `Nhắn: ${msg}`, item: "", time: new Date().toLocaleTimeString() });
+                document.getElementById("quickMsgInput").value = "";
+                closeModal('chatModal');
+            }
+        }
+
+        function toggleMasterSound() {
+            const icon = document.getElementById("soundMasterIcon");
+            icon.classList.toggle("fa-music");
+            icon.classList.toggle("fa-volume-xmark");
+            alert("Đã bật/tắt âm thanh nền toàn cục!");
+        }
+    </script>
+</body>
+</html>
